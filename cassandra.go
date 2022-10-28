@@ -85,8 +85,8 @@ func (cassandra *Client) Run(gql string, variables map[string]interface{}) (resp
 	if cassandra.token == "" {
 		fmt.Printf("token is empty, will fetch\n")
 		err = cassandra.fetchToken()
-		if err != nil{
-			return 
+		if err != nil {
+			return
 		}
 	}
 
@@ -103,12 +103,12 @@ func (cassandra *Client) Run(gql string, variables map[string]interface{}) (resp
 		fmt.Println("token may expired, fetch token, try again")
 		err = cassandra.fetchToken()
 		if err != nil {
-			return 
+			return
 		}
 		req.Header.Set("x-cassandra-token", cassandra.token)
 		if err = cassandra.graphqlClient.Run(ctx, req, &response); err != nil {
 			fmt.Printf("%v", err)
-			return 
+			return
 		}
 	}
 	return
@@ -121,5 +121,18 @@ func (cassandra *Client) Mutation(gql string, variables map[string]interface{}) 
 
 func (cassandra *Client) Query(gql string, variables map[string]interface{}) (response map[string]interface{}, err error) {
 	response, err = cassandra.Run(gql, variables)
+	return
+}
+
+func (cassandra *Client) GetValue(response map[string]interface{}) (applied bool, jsonValue []byte, err error) {
+	response = response["response"].(map[string]interface{})
+	applied = response["applied"].(bool)
+	responseValue := response["value"]
+	if applied {
+		jsonValue, err = json.Marshal(responseValue)
+		if err != nil {
+			return 
+		}
+	}
 	return
 }
