@@ -141,7 +141,7 @@ func (cassandra *Client) QueryResponse(response map[string]interface{}) (pageSta
 	response = response["response"].(map[string]interface{})
 	strPageState, ok := response["pageState"].(string)
 	if ok {
-		*pageState = strPageState
+		pageState = &strPageState
 	}
 
 	responseValue := response["values"]
