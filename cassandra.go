@@ -124,15 +124,30 @@ func (cassandra *Client) Query(gql string, variables map[string]interface{}) (re
 	return
 }
 
-func (cassandra *Client) GetValue(response map[string]interface{}) (applied bool, jsonValue []byte, err error) {
+func (cassandra *Client) MutationResponse(response map[string]interface{}) (applied bool, jsonValue []byte, err error) {
 	response = response["response"].(map[string]interface{})
 	applied = response["applied"].(bool)
 	responseValue := response["value"]
 	if applied {
 		jsonValue, err = json.Marshal(responseValue)
 		if err != nil {
-			return 
+			return
 		}
+	}
+	return
+}
+
+func (cassandra *Client) QueryResponse(response map[string]interface{}) (pageState *string, jsonValue []byte, err error) {
+	response = response["response"].(map[string]interface{})
+	strPageState, ok := response["pageState"].(string)
+	if ok {
+		*pageState = strPageState
+	}
+
+	responseValue := response["values"]
+	jsonValue, err = json.Marshal(responseValue)
+	if err != nil {
+		return
 	}
 	return
 }
