@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -133,6 +134,28 @@ func (cassandra *Client) MutationResponse(response map[string]interface{}) (appl
 		if err != nil {
 			return
 		}
+	}
+	return
+}
+
+func (cassandra *Client) BatchMutationResponse(responses map[string]interface{}, mutations []string) (jsonValues map[string][]byte, err error) {
+
+	jsonValues = make(map[string][]byte)
+	for _, mutation := range mutations {
+		mutation := mutation
+		response := responses[mutation].(map[string]interface{})
+		applied := response["applied"].(bool)
+		if !applied {
+			err = errors.New("batch mutation, has one mutaion not applied")
+			return
+		}
+		responseValue := response["value"]
+		jsonValue, jsonErr := json.Marshal(responseValue)
+		if jsonErr != nil {
+			err = jsonErr
+			return
+		}
+		jsonValues[mutation] = jsonValue
 	}
 	return
 }
